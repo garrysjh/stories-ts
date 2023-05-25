@@ -1,18 +1,37 @@
 import './App.css'
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useEffect } from 'react';
 
 
+const initialStories = [
+  {
+    title: 'React',
+    url: 'https://reactjs.org/',
+    author: 'Jordan Walke',
+    num_comments: 3,
+    points: 4,
+    objectID: 0,
+  },
+  {
+    title: 'Redux',
+    url: 'https://redux.js.org/',
+    author: 'Dan Abramov, Andrew Clark',
+    num_comments: 2,
+    points: 5,
+    objectID: 1,
+  },
+];
+
 interface InputWithLabelProps {
   id: string;
-  label: string;
   value: string;
   onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   type: string;
+  children: ReactNode;
  }
-const InputWithLabel = ({id, label, value, onInputChange, type}: InputWithLabelProps) => (
+const InputWithLabel = ({id, value, onInputChange, type, children}: InputWithLabelProps) => (
     <>
-      <label htmlFor={id}>{label} </label>
+      <label htmlFor={id}>{children}</label>
       <input id={id} value={value} type={type} onChange={onInputChange}/>
     </>
     );
@@ -22,29 +41,21 @@ const InputWithLabel = ({id, label, value, onInputChange, type}: InputWithLabelP
 
 const App = () => {
   const [searchTerm, setSearchterm] = useState(localStorage.getItem('search') || 'React');
-  const stories = [
-    {
-      title: 'React',
-      url: 'https://reactjs.org/',
-      author: 'Jordan Walke',
-      num_comments: 3,
-      points: 4,
-      objectID: 0,
-    },
-    {
-      title: 'Redux',
-      url: 'https://redux.js.org/',
-      author: 'Dan Abramov, Andrew Clark',
-      num_comments: 2,
-      points: 5,
-      objectID: 1,
-    },
-  ];
+  const [stories, setStories] = useState(initialStories);
   
   const handleSearch = (event: React.FormEvent<HTMLInputElement>) => {
     const search =(event.target as HTMLInputElement)
     setSearchterm(search.value)
   };
+
+  const handleRemoveStory = (item: any) => {
+    const newStories = stories.filter(
+      (story) => item.objectID !== story.objectID
+    );
+
+    setStories(newStories);
+  };
+
 
   useEffect(() => {
     localStorage.setItem('search', searchTerm);
@@ -61,33 +72,45 @@ const App = () => {
       <h1>
         Hello World
       </h1>
-      <InputWithLabel id='search' label="Search: " type="text" value={searchTerm} onInputChange={handleSearch}/>
-      <List list={searchedStories}/>
+      <InputWithLabel id='search' type="text" value={searchTerm} onInputChange={handleSearch}>Search:adada </InputWithLabel>
+      <List list={searchedStories} onRemoveItem={handleRemoveStory}/>
     </div>
     </>
   )
 }
-const List = (props: any) => {
-  return (
+interface ListProps {
+  list: any;
+  onRemoveItem: (item: typeof Item) => void;
+ }
+const List = ({list, onRemoveItem}: ListProps) => (
     <ul>
-      {props.list.map((item: any) => (
-          <Item key={item.objectID} item={item}/> 
+      {list.map((item: any) => (
+          <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem}/> 
       ))}
     </ul>
   );
-}
-function Item(props: any) {
+  interface ItemProps {
+    item: any;
+    onRemoveItem: (item: any) => void;
+   }
+const Item = ({item, onRemoveItem}: ItemProps) => {
+  const handleRemoveItem = () => {
+    onRemoveItem(item);
+  };
   return(
   <li>
     <span>
-      <a href={props.item.url}>{props.item.title}</a>
+      <a href={item.url}>{item.title}</a>
     </span>
     <span>
-      {props.item.author}
+      {item.author}
     </span>
     <span>
-      {props.item.points}
+      {item.points}
     </span>
+    <span><button type="button" onClick={handleRemoveItem}>
+          Dismiss
+        </button></span>
   </li>
 )}
 

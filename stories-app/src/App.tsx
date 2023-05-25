@@ -2,7 +2,14 @@ import './App.css'
 import { ReactNode, useState } from 'react';
 import { useEffect } from 'react';
 
-
+interface story {
+  title: string;
+  url: string;
+  author: string;
+  num_comments: number
+  points: number;
+  objectID: number;
+}
 const initialStories = [
   {
     title: 'React',
@@ -36,12 +43,24 @@ const InputWithLabel = ({id, value, onInputChange, type, children}: InputWithLab
     </>
     );
 
+    const getAsyncStories = () =>
+  new Promise((resolve) =>
+  setTimeout(
+    () => resolve({ data: { stories: initialStories } }),
+    2000
+  ));
   
 
 
 const App = () => {
   const [searchTerm, setSearchterm] = useState(localStorage.getItem('search') || 'React');
-  const [stories, setStories] = useState(initialStories);
+  const [stories, setStories] = useState([]);
+
+  useEffect(() => {
+    getAsyncStories().then((result: any) => {
+      setStories(result.data.stories);
+    });
+  }, []);
   
   const handleSearch = (event: React.FormEvent<HTMLInputElement>) => {
     const search =(event.target as HTMLInputElement)
@@ -50,7 +69,7 @@ const App = () => {
 
   const handleRemoveStory = (item: any) => {
     const newStories = stories.filter(
-      (story) => item.objectID !== story.objectID
+      (story: story) => item.objectID !== story.objectID
     );
 
     setStories(newStories);
@@ -61,7 +80,7 @@ const App = () => {
     localStorage.setItem('search', searchTerm);
   }, [searchTerm]);
 
-  const searchedStories = stories.filter(function (story) {
+  const searchedStories = stories.filter(function (story: story) {
     return story.title.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
